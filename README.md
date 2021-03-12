@@ -19,7 +19,18 @@ from matplotlib import pyplot
 
 ## Simulated Data
 
-
+Here we wrtite a function to generate simulated data with arbitrary number of observations, features, and Toeplitz correlation matrix.
+Input "num_samples" is the number of observations we need. Input "p" is the number of features we want in our simulated data. Input "rho" is used to generate coefficients in the correlation matrix.
+```
+def make_correlated_features(num_samples,p,rho):
+  vcor = [] 
+  for i in range(p):
+    vcor.append(rho**i)
+  r = toeplitz(vcor)
+  mu = np.repeat(0,p)
+  X = np.random.multivariate_normal(mu, r, size=num_samples)
+  return X
+```
 
 ## Ridge Regularization
 
