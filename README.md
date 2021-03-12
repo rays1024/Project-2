@@ -2,7 +2,8 @@
 In this project, we will compare the following regularization techniques in terms of variable selection and prediction. We will applly the following techniques on both real data and synthetic data.
 
 ## General Imports
-```
+These imports are the tools for data simulation and regularization technique applications.
+```python
 import numpy as np
 import pandas as pd
 from math import ceil
