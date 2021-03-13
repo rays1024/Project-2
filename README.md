@@ -303,5 +303,31 @@ The Square Root LASSO is given by the following formula:
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\displaystyle\text{minimize}&space;\sqrt{\frac{1}{n}\sum\limits_{i=1}^{n}(y_i-\hat{y}_i)^2}&space;&plus;\alpha\sum\limits_{i=1}^{p}|\beta_i|" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\displaystyle\text{minimize}&space;\sqrt{\frac{1}{n}\sum\limits_{i=1}^{n}(y_i-\hat{y}_i)^2}&space;&plus;\alpha\sum\limits_{i=1}^{p}|\beta_i|" title="\displaystyle\text{minimize} \sqrt{\frac{1}{n}\sum\limits_{i=1}^{n}(y_i-\hat{y}_i)^2} +\alpha\sum\limits_{i=1}^{p}|\beta_i|" /></a>
 
-It minimizes an objective function with a L1 penalty function.
+It minimizes the average of square root SSR with a L1 penalty function.
+
+```python
+mae=[]
+alpha_val=[]
+for i in np.arange(0,1.01,0.01):
+  mae.append(DoKFold(X_train,y_train,i,'sqrt_lasso',-1))
+  alpha_val.append(i)
+print(min(mae))
+print(alpha_val[mae.index(min(mae))])
+``` 
+MAE = $3556.117681581438
+Best alpha value = 0.93
+
+```python
+alpha_val=[]
+L2_norm=[]
+for i in np.arange(0,10.01,0.1):
+  betahat = sm.OLS(y_data,X_data).fit_regularized(method='sqrt_lasso', alpha=i, profile_scale=True).params
+  L2_norm.append(np.sqrt(np.sum((betahat-betas)**2)))
+  alpha_val.append(i)
+print(min(L2_norm))
+print(alpha_val[L2_norm.index(min(L2_norm))])
+```
+L2 norm = 22.1190277408657
+Best alpha value = 10.0
+
 
