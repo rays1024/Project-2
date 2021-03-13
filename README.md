@@ -136,14 +136,14 @@ print(alpha_val[L2_norm.index(min(L2_norm))])
 ```
 L2 norm = 15.996158036188461
 
-Best alpha value from 1 to 10 = 6.0
+Best alpha value = 6.0
 
 ## Least Absolute Shrinkage and Selection Operator (LASSO)
 The LASSO Regression is given by the following formula:
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\text{minimize}&space;\frac{1}{n}\text{SSR}&space;&plus;&space;K\sum\limits_{i=1}^{n}|\beta_i|" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{minimize}&space;\frac{1}{n}\text{SSR}&space;&plus;&space;K\sum\limits_{i=1}^{n}|\beta_i|" title="\text{minimize} \frac{1}{n}\text{SSR} + K\sum\limits_{i=1}^{n}|\beta_i|" /></a>
 
-where where SSR is the squared residual and K is a tuning parameter.
+where SSR is the squared residual and K is a tuning parameter.
 
 We used the "statsmodels.api" package and its upgrade from GitHub to calculate the KFold validated MAE. Since the Elastic Net technique is the combination of Ridge and LASSO, we can set the L1 weight to be 1 to obtain LASSO regression results. 
 ```python
@@ -156,15 +156,152 @@ print(min(mae))
 print(alpha_val[mae.index(min(mae))])
 ```
 MAE = $3580.2053332106398
-Best alpha value from 0 to 1 = 0.11
+Best alpha value = 0.11
+
+```python
+alpha_val=[]
+L2_norm=[]
+for i in np.arange(0,10.01,0.1):
+  betahat = sm.OLS(y_data,X_data).fit_regularized(method='elastic_net', alpha=i, L1_wt=1).params
+  L2_norm.append(np.sqrt(np.sum((betahat-betas)**2)))
+  alpha_val.append(i)
+print(min(L2_norm))
+print(alpha_val[L2_norm.index(min(L2_norm))])
+```
+L2 norm = 16.054805555857936
+Best alpha value = 4.6
 
 ## Elastic Net
 The Elastic Net is given by the following formula:
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\text{minimize}\,&space;\frac{1}{n}\text{SSR}&space;&plus;&space;K\left(\alpha\sum\limits_{i=1}^{n}|\beta_i|&plus;(1-\alpha)\sum\limits_{i=1}^{n}\beta_i^2\right)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{minimize}\,&space;\frac{1}{n}\text{SSR}&space;&plus;&space;K\left(\alpha\sum\limits_{i=1}^{n}|\beta_i|&plus;(1-\alpha)\sum\limits_{i=1}^{n}\beta_i^2\right)" title="\text{minimize}\, \frac{1}{n}\text{SSR} + K\left(\alpha\sum\limits_{i=1}^{n}|\beta_i|+(1-\alpha)\sum\limits_{i=1}^{n}\beta_i^2\right)" /></a>
 
+where SSR is the squared residual, K is a tuning parameter, and a is the weight for Ridge and LASSO regression.
+
+```python
+mae=[]
+alpha_weight=[]
+for i in np.arange(0,1.01,0.1):
+  for j in np.arange(0.01,1.0,0.1):
+    mae.append(DoKFold(X_train,y_train,i,'elastic_net',j))
+    alpha_weight.append(i)
+    alpha_weight.append(j)
+print(min(mae))
+print(alpha_weight[mae.index(min(mae))*2])
+print(alpha_weight[mae.index(min(mae))*2+1])
+```
+MAE = 3594.4088971396536
+Best alpha value = 0.1
+Best L1 weight = 0.01
+
+```python
+alpha_weight=[]
+L2_norm=[]
+for i in np.arange(0,10.6,0.1):
+  for j in np.arange(0.01,1.0,0.05):
+    betahat = sm.OLS(y_data,X_data).fit_regularized(method='elastic_net', alpha=i, L1_wt=j).params
+    L2_norm.append(np.sqrt(np.sum((betahat-betas)**2)))
+    alpha_weight.append(i)    
+    alpha_weight.append(j)
+print(min(L2_norm))
+print(alpha_weight[L2_norm.index(min(L2_norm))*2])
+print(alpha_weight[L2_norm.index(min(L2_norm))*2+1])
+```
+L2 norm = 15.990831156469698
+Best alpha value = 5.4
+Best L1 weight = 0.16
 
 ## Smoothly Clipped Absolute Deviation (SCAD)
+The SCAD was introduced by Fan and Li to make penalties for large values of betas constant and not penalize more as beta values increase. A part of codes we used was from https://andrewcharlesjones.github.io/posts/2020/03/scad/. 
+```python
+def scad_penalty(beta_hat, lambda_val, a_val):
+    is_linear = (np.abs(beta_hat) <= lambda_val)
+    is_quadratic = np.logical_and(lambda_val < np.abs(beta_hat), np.abs(beta_hat) <= a_val * lambda_val)
+    is_constant = (a_val * lambda_val) < np.abs(beta_hat)
+    
+    linear_part = lambda_val * np.abs(beta_hat) * is_linear
+    quadratic_part = (2 * a_val * lambda_val * np.abs(beta_hat) - beta_hat**2 - lambda_val**2) / (2 * (a_val - 1)) * is_quadratic
+    constant_part = (lambda_val**2 * (a_val + 1)) / 2 * is_constant
+    return linear_part + quadratic_part + constant_part
+    
+def scad_derivative(beta_hat, lambda_val, a_val):
+    return lambda_val * ((beta_hat <= lambda_val) + (a_val * lambda_val - beta_hat)*((a_val * lambda_val - beta_hat) > 0) / ((a_val - 1) * lambda_val) * (beta_hat > lambda_val))
+```
+```python
+def scad(beta):
+  beta = beta.flatten()
+  beta = beta.reshape(-1,1)
+  n = len(y_train)
+  return 1/n*np.sum((y_train-X_train.dot(beta))**2) + np.sum(scad_penalty(beta,lam,a))
+  
+def dscad(beta):
+  beta = beta.flatten()
+  beta = beta.reshape(-1,1)
+  n = len(y_train)
+  return np.array(-2/n*np.transpose(X_train).dot(y_train-X_train.dot(beta))+scad_derivative(beta,lam,a)).flatten()
+```
 
+Here we create a set of initial random beta values.
+```python
+p = X_train.shape[1]
+b0 = np.random.normal(1,1,p)
+```
+
+The KFold Validation process is generated from the following function.
+```python
+def DoKFold_SCAD(X,y,lam,a):
+  PE = []
+  for idxtrain, idxtest in kf.split(X):
+    X_train = X[idxtrain,:]
+    y_train = y[idxtrain]
+    X_test  = X[idxtest,:]
+    y_test  = y[idxtest]
+    output = minimize(scad, b0, method='L-BFGS-B', jac=dscad,options={'gtol': 1e-8, 'maxiter': 50000,'maxls': 25,'disp': True})
+    betas = output.x
+    yhat_test = X_test.dot(betas)
+    PE.append(MAE(y_test,yhat_test))
+  return 1000*np.mean(PE)
+```
+
+
+```python
+mae=[]
+lam_a=[]
+for lam in np.arange(0.1,2.5,0.1):
+  for a in np.arange(1.01,1.15,0.1):
+    mae.append(DoKFold_SCAD(X_train,y_train,lam,a))
+    lam_a.append(lam)
+    lam_a.append(a)
+print(min(mae))
+print(lam_a[mae.index(min(mae))*2])
+print(lam_a[mae.index(min(mae))*2+1])
+```
+MAE = $3404.182504374435
+Best lambda value = 1.0
+Best a value = 0.11
+
+```python
+L2_norm=[]
+lam_a=[]
+for lam in np.arange(1,30,1):
+  for a in np.arange(1.1,2,0.1):
+    output = minimize(scad, b0, method='L-BFGS-B', jac=dscad,options={'gtol': 1e-8, 'maxiter': 50000,'maxls': 25,'disp': True})
+    betahat = output.x
+    L2_norm.append(np.sqrt(np.sum((betahat-betas)**2)))
+    lam_a.append(lam)
+    lam_a.append(a)
+print(min(L2_norm))
+print(lam_a[L2_norm.index(min(L2_norm))*2])
+print(lam_a[L2_norm.index(min(L2_norm))*2+1])
+```
+L2 norm = 16.309101332301765
+Best lambda value = 9.0
+Best a value = 1.1
 
 ## Square Root LASSO
+The Square Root LASSO is given by the following formula:
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\displaystyle\text{minimize}&space;\sqrt{\frac{1}{n}\sum\limits_{i=1}^{n}(y_i-\hat{y}_i)^2}&space;&plus;\alpha\sum\limits_{i=1}^{p}|\beta_i|" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\displaystyle\text{minimize}&space;\sqrt{\frac{1}{n}\sum\limits_{i=1}^{n}(y_i-\hat{y}_i)^2}&space;&plus;\alpha\sum\limits_{i=1}^{p}|\beta_i|" title="\displaystyle\text{minimize} \sqrt{\frac{1}{n}\sum\limits_{i=1}^{n}(y_i-\hat{y}_i)^2} +\alpha\sum\limits_{i=1}^{p}|\beta_i|" /></a>
+
+It minimizes an objective function with a L1 penalty function.
+
