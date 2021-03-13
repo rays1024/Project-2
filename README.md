@@ -343,4 +343,16 @@ L2 norm = 22.1190277408657
 
 Best alpha value = 10.0
 
+## Technique Rankings
+### Real Data
+1. SCAD
+2. Square Root LASSO
+3. Ridge and LASSO Regression
+4. Elastic Net
 
+### Synthetic Data
+1. Elastic Net
+2. Ridge Regression
+3. LASSO Regression
+4. SCAD
+5. Square Root LASSO
