@@ -117,12 +117,12 @@ alpha_val=[]
 for i in np.arange(0,1.01,0.01):
   mae.append(DoKFold(X_train,y_train,i,'elastic_net',0))
   alpha_val.append(i)
-print(np.amin(np.array(mae)))
-print(np.array(alpha_val)[np.where(mae==np.amin(np.array(mae)))])
+print(min(mae))
+print(alpha_val[mae.index(mae==min(mae))])
 ```
 MAE = $3580.2053332106398
 
-Best alpha value from 0 to 1 = [0.11]
+Best alpha value from 0 to 1 = 0.11
 
 ```python
 alpha_val=[]
@@ -141,11 +141,27 @@ Best alpha value from 1 to 10 = 6.0
 ## Least Absolute Shrinkage and Selection Operator (LASSO)
 The LASSO Regression is given by the following formula:
 
+<a href="https://www.codecogs.com/eqnedit.php?latex=\text{minimize}&space;\frac{1}{n}\text{SSR}&space;&plus;&space;K\sum\limits_{i=1}^{n}|\beta_i|" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{minimize}&space;\frac{1}{n}\text{SSR}&space;&plus;&space;K\sum\limits_{i=1}^{n}|\beta_i|" title="\text{minimize} \frac{1}{n}\text{SSR} + K\sum\limits_{i=1}^{n}|\beta_i|" /></a>
 
+where where SSR is the squared residual and K is a tuning parameter.
 
-
+We used the "statsmodels.api" package and its upgrade from GitHub to calculate the KFold validated MAE. Since the Elastic Net technique is the combination of Ridge and LASSO, we can set the L1 weight to be 1 to obtain LASSO regression results. 
+```python
+mae=[]
+alpha_val=[]
+for i in np.arange(0,1.01,0.01):
+  mae.append(DoKFold(X_train,y_train,i,'elastic_net',1))
+  alpha_val.append(i)
+print(min(mae))
+print(alpha_val[mae.index(min(mae))])
+```
+MAE = $3580.2053332106398
+Best alpha value from 0 to 1 = 0.11
 
 ## Elastic Net
+The Elastic Net is given by the following formula:
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\text{minimize}\,&space;\frac{1}{n}\text{SSR}&space;&plus;&space;K\left(\alpha\sum\limits_{i=1}^{n}|\beta_i|&plus;(1-\alpha)\sum\limits_{i=1}^{n}\beta_i^2\right)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{minimize}\,&space;\frac{1}{n}\text{SSR}&space;&plus;&space;K\left(\alpha\sum\limits_{i=1}^{n}|\beta_i|&plus;(1-\alpha)\sum\limits_{i=1}^{n}\beta_i^2\right)" title="\text{minimize}\, \frac{1}{n}\text{SSR} + K\left(\alpha\sum\limits_{i=1}^{n}|\beta_i|+(1-\alpha)\sum\limits_{i=1}^{n}\beta_i^2\right)" /></a>
 
 
 ## Smoothly Clipped Absolute Deviation (SCAD)
