@@ -109,9 +109,10 @@ def DoKFold(X,y,alpha,m,w):
     yhat_test = result.predict(X_test)
     PE.append(MAE(y_test,yhat_test))
   return 1000*np.mean(PE)
-  ```
-  As mentioned above, we set the method to be 'elastic_net' and set the L1_wt to be 0. We also used an iteration process to find the best hyperparameter in a certain range for both real and synthetic data.
-  ```python
+```
+
+As mentioned above, we set the method to be 'elastic_net' and set the L1_wt to be 0. We also used an iteration process to find the best hyperparameter in a certain range for both real and synthetic data.
+```python
 mae=[]
 alpha_val=[]
 for i in np.arange(0,1.01,0.01):
@@ -156,6 +157,7 @@ print(min(mae))
 print(alpha_val[mae.index(min(mae))])
 ```
 MAE = $3580.2053332106398
+
 Best alpha value = 0.11
 
 ```python
@@ -169,6 +171,7 @@ print(min(L2_norm))
 print(alpha_val[L2_norm.index(min(L2_norm))])
 ```
 L2 norm = 16.054805555857936
+
 Best alpha value = 4.6
 
 ## Elastic Net
@@ -191,7 +194,9 @@ print(alpha_weight[mae.index(min(mae))*2])
 print(alpha_weight[mae.index(min(mae))*2+1])
 ```
 MAE = 3594.4088971396536
+
 Best alpha value = 0.1
+
 Best L1 weight = 0.01
 
 ```python
@@ -208,7 +213,9 @@ print(alpha_weight[L2_norm.index(min(L2_norm))*2])
 print(alpha_weight[L2_norm.index(min(L2_norm))*2+1])
 ```
 L2 norm = 15.990831156469698
+
 Best alpha value = 5.4
+
 Best L1 weight = 0.16
 
 ## Smoothly Clipped Absolute Deviation (SCAD)
@@ -277,7 +284,9 @@ print(lam_a[mae.index(min(mae))*2])
 print(lam_a[mae.index(min(mae))*2+1])
 ```
 MAE = $3404.182504374435
+
 Best lambda value = 1.0
+
 Best a value = 0.11
 
 ```python
@@ -295,7 +304,9 @@ print(lam_a[L2_norm.index(min(L2_norm))*2])
 print(lam_a[L2_norm.index(min(L2_norm))*2+1])
 ```
 L2 norm = 16.309101332301765
+
 Best lambda value = 9.0
+
 Best a value = 1.1
 
 ## Square Root LASSO
@@ -315,6 +326,7 @@ print(min(mae))
 print(alpha_val[mae.index(min(mae))])
 ``` 
 MAE = $3556.117681581438
+
 Best alpha value = 0.93
 
 ```python
@@ -328,6 +340,7 @@ print(min(L2_norm))
 print(alpha_val[L2_norm.index(min(L2_norm))])
 ```
 L2 norm = 22.1190277408657
+
 Best alpha value = 10.0
 
 
